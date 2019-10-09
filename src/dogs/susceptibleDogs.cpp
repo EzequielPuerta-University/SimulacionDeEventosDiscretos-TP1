@@ -6,71 +6,70 @@
 #include "real.h"
 #include "tuple_value.h"
 
-#include "humans.h"
+#include "susceptibleDogs.h"
 
 using namespace std;
 
-
-#define VERBOSE true
-
-#define PRINT_TIMES(f) {\
-	VTime timeleft = nextChange();\
-	VTime elapsed  = msg.time() - lastChange();\
-	VTime sigma    = elapsed + timeleft;\
-	cout << f << "@" << msg.time() <<\
-		" - timeleft: " << timeleft <<\
-		" - elapsed: " << elapsed <<\
-		" - sigma: " << sigma << endl;\
-}
-
-
-Humans::Humans(const string &name) :
+SusceptibleDogs::SusceptibleDogs(const string &name) :
 	Atomic(name),
 	births(addInputPort("births")),
-	deaths(addOutputPort("deaths")),
-	frequency_time(0,0,0,1),
-	infectedAmount(1),
-	totalAmount(100),
-	dist(0,100),
-	rng(random_device()()){
-	totalAmount = str2Int(ParallelMainSimulator::Instance().getParameter( description(), "totalAmount" ));
-	infectedAmount = str2Int(ParallelMainSimulator::Instance().getParameter( description(), "infectedAmount" ));
+	migrations(addInputPort("migrations")),
+	infected(addInputPort("infected")),
+	deaths(addInputPort("deaths")),
+	populationRequest(addInputPort("populationRequest")),
+	currentPopulation(addOutputPort("currentPopulation")),
+	infectionsApplied(addOutputPort("infectionsApplied")),
+	frequency_time(0,0,0,1){
+	population = str2Int(ParallelMainSimulator::Instance().getParameter( description(), "population" ));
 }
 
 
-Model &Humans::initFunction(){
-	holdIn(AtomicState::active, this->frequency_time);
+Model &SusceptibleDogs::initFunction(){
+	state = PASSIVE;
+	passivate();
 	return *this;
 }
 
 
-Model &Humans::externalFunction(const ExternalMessage &msg){
-#if VERBOSE
-	PRINT_TIMES("dext");
-#endif
-
-	if(msg.port() == births){
-		holdIn(AtomicState::active, nextChange());
+Model &SusceptibleDogs::externalFunction(const ExternalMessage &msg){
+	if(msg.port() == populationRequest){
+		state = POPULATION_REQUEST;
+		holdIn(AtomicState::active, VTime::Zero);
+	} else if(msg.port() == infected){
+		population = population - (Real::from_value(msg.value())).value();
+		state = INFECTIONS_APPLIED;
+		passivate();
+	} else if(msg.port() == migrations){
+		immigrants = (Tuple<Real>::from_value(msg.value())[0]).value();
+		emmigrants = (Tuple<Real>::from_value(msg.value())[1]).value();
+		population = population - emmigrants + immigrants;
+		passivate();
+	} else if(msg.port() == births){
+		population = population + (Real::from_value(msg.value())).value();
+		passivate();
+	} else if(msg.port() == deaths){
+		population = population - (Real::from_value(msg.value())).value();
+		passivate();
 	}
-
 	return *this;
 }
 
 
-Model &Humans::internalFunction(const InternalMessage &msg){
-#if VERBOSE
-	PRINT_TIMES("dint");
-#endif
-
-	holdIn(AtomicState::active, this->frequency_time);
-
-	return *this ;
+Model &SusceptibleDogs::internalFunction(const InternalMessage &msg){
+	state = PASSIVE;
+	passivate();
+	return *this;
 }
 
 
-Model &Humans::outputFunction(const CollectMessage &msg){
-	auto random_deaths = this->dist(this->rng);
-	Tuple<Real> deaths_value{Real(random_deaths), 0, 1};
-	sendOutput(msg.time(), deaths, deaths_value);
-	return *this ;
+Model &SusceptibleDogs::outputFunction(const CollectMessage &msg){
+	switch (this->state) {
+		case POPULATION_REQUEST:
+			sendOutput(msg.time(), currentPopulation, Real(population));
+			break;
+		case INFECTIONS_APPLIED:
+			sendOutput(msg.time(), infectionsApplied, Real(population));
+			break;
+	}
+	return *this;
 }

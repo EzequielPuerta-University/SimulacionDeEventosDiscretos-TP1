@@ -8,7 +8,9 @@
 
 
 #define ATOMIC_MODEL_NAME "SusceptibleDogs"
-
+#define PASSIVE 0
+#define POPULATION_REQUEST 1
+#define INFECTIONS_APPLIED 2
 
 class SusceptibleDogs : public Atomic {
   public:
@@ -23,18 +25,19 @@ class SusceptibleDogs : public Atomic {
 
   private:
     const Port &births;
-    const Port &infectedBites;
-    const Port &nonInfectedBites;
-    Port &infected;
-    Port &deaths;
-    Port &arrivals;
-    Port &departures;
+    const Port &migrations;
+    const Port &infected;
+    Port &infectionsApplied;
+    const Port &deaths;
+    const Port &populationRequest;
+    Port &currentPopulation;
 
     VTime frequency_time;
 
-    int population;
-    int immigrationRate;
-    int emigrationRate;
+    int state;
+    double population;
+    double immigrants;
+    double emmigrants;
 };
 
 #endif
