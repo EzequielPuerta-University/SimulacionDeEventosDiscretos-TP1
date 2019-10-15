@@ -7,16 +7,15 @@
 #include "tuple_value.h"
 
 #include "vectorMigrations.h"
+#include "utils.h"
 
 using namespace std;
 
 VectorMigrations::VectorMigrations(const string &name) :
 	Atomic(name),
-	applyMigrations(addInputPort("applyMigrations")),
-	susceptibleMigrations(addOutputPort("susceptibleMigrations")),
-	infectedMigrations(addOutputPort("infectedMigrations")),
-	migrationsApplied(addOutputPort("migrationsApplied")),
-	frequency_time(0,0,0,1){
+	execute(addInputPort("execute")),
+	setValues(addOutputPort("setValues")),
+	applied(addOutputPort("applied")){
 }
 
 
@@ -35,9 +34,9 @@ Model &VectorMigrations::initFunction(){
 
 
 Model &VectorMigrations::externalFunction(const ExternalMessage &msg){
-	if(msg.port() == applyMigrations){
-		susceptiblePopulation = (Tuple<Real>::from_value(msg.value())[0]).value();
-		infectedPopulation = (Tuple<Real>::from_value(msg.value())[1]).value();
+	if(msg.port() == execute){
+		susceptiblePopulation = getValueFromTupleAt(msg,0);
+		infectedPopulation = getValueFromTupleAt(msg,1);
 	}
 	holdIn(AtomicState::active, VTime::Zero);
 	return *this;
@@ -51,25 +50,21 @@ Model &VectorMigrations::internalFunction(const InternalMessage &msg){
 
 
 Model &VectorMigrations::outputFunction(const CollectMessage &msg){
-	currentSusceptibleImmigrationRate = getRate(susceptibleImmigrationRate, susceptibleImmigrationDeviation);
-	currentSusceptibleEmmigrationRate = getRate(susceptibleEmmigrationRate, susceptibleEmmigrationDeviation);
-	currentInfectedImmigrationRate = getRate(infectedImmigrationRate, infectedImmigrationDeviation);
-	currentInfectedEmmigrationRate = getRate(infectedEmmigrationRate, infectedEmmigrationDeviation);
+	lastSusceptibleImmigrationRate = getRate(susceptibleImmigrationRate, susceptibleImmigrationDeviation);
+	lastSusceptibleEmmigrationRate = getRate(susceptibleEmmigrationRate, susceptibleEmmigrationDeviation);
+	lastInfectedImmigrationRate = getRate(infectedImmigrationRate, infectedImmigrationDeviation);
+	lastInfectedEmmigrationRate = getRate(infectedEmmigrationRate, infectedEmmigrationDeviation);
 
-	susceptibleImmigrationsAmount = static_cast<int>(currentSusceptibleImmigrationRate * susceptiblePopulation);
-	susceptibleEmmigrationsAmount = static_cast<int>(currentSusceptibleEmmigrationRate * susceptiblePopulation);
-	infectedImmigrationsAmount = static_cast<int>(currentInfectedImmigrationRate * infectedPopulation);
-	infectedEmmigrationsAmount = static_cast<int>(currentInfectedEmmigrationRate * infectedPopulation);
+	susceptibleImmigrationsAmount = static_cast<int>(lastSusceptibleImmigrationRate * susceptiblePopulation);
+	susceptibleEmmigrationsAmount = static_cast<int>(lastSusceptibleEmmigrationRate * susceptiblePopulation);
+	infectedImmigrationsAmount = static_cast<int>(lastInfectedImmigrationRate * infectedPopulation);
+	infectedEmmigrationsAmount = static_cast<int>(lastInfectedEmmigrationRate * infectedPopulation);
 
 	susceptiblePopulation = susceptiblePopulation + susceptibleImmigrationsAmount - susceptibleEmmigrationsAmount;
 	infectedPopulation = infectedPopulation + infectedImmigrationsAmount - infectedEmmigrationsAmount;
 
-	Tuple<Real> migrationsValue{Real(susceptiblePopulation), Real(infectedPopulation)};
-	Tuple<Real> susceptibleMigrationsValue{Real(susceptibleImmigrationsAmount), Real(susceptibleEmmigrationsAmount)};
-	Tuple<Real> infectedMigrationsValue{Real(infectedImmigrationsAmount), Real(infectedEmmigrationsAmount)};
-	sendOutput(msg.time(), susceptibleMigrations, susceptibleMigrationsValue);
-	sendOutput(msg.time(), infectedMigrations, infectedMigrationsValue);
-	sendOutput(msg.time(), migrationsApplied, migrationsValue);
+	sendOutput(msg.time(), setValues, asTuple(susceptibleImmigrationsAmount, susceptibleEmmigrationsAmount, infectedImmigrationsAmount, infectedEmmigrationsAmount));
+	sendOutput(msg.time(), applied, asTuple(susceptiblePopulation, infectedPopulation));
 
 	return *this;
 }

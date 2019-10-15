@@ -7,21 +7,20 @@
 #include "tuple_value.h"
 
 #include "dogDeaths.h"
+#include "utils.h"
 
 using namespace std;
 
 DogDeaths::DogDeaths(const string &name) :
 	Atomic(name),
-	applyDeaths(addInputPort("applyDeaths")),
-	susceptibleDeaths(addOutputPort("susceptibleDeaths")),
-	infectedDeaths(addOutputPort("infectedDeaths")),
-	deathsApplied(addOutputPort("deathsApplied")),
-	frequency_time(0,0,0,1){
+	execute(addInputPort("execute")),
+	setValues(addOutputPort("setValues")),
+	applied(addOutputPort("applied")){
 }
 
 
 Model &DogDeaths::initFunction(){
-	meanDeathRate = 0.000913;
+	meanRate = 0.000913;
 	standardDeviation = 0.000274;
 	passivate();
 	return *this;
@@ -29,9 +28,9 @@ Model &DogDeaths::initFunction(){
 
 
 Model &DogDeaths::externalFunction(const ExternalMessage &msg){
-	if(msg.port() == applyDeaths){
-		susceptiblePopulation = (Tuple<Real>::from_value(msg.value())[0]).value();
-		infectedPopulation = (Tuple<Real>::from_value(msg.value())[1]).value();
+	if(msg.port() == execute){
+		susceptiblePopulation = getValueFromTupleAt(msg,0);
+		infectedPopulation = getValueFromTupleAt(msg,1);
 	}
 	holdIn(AtomicState::active, VTime::Zero);
 	return *this;
@@ -45,23 +44,21 @@ Model &DogDeaths::internalFunction(const InternalMessage &msg){
 
 
 Model &DogDeaths::outputFunction(const CollectMessage &msg){
-	deathRate = getDeathRate();
-	susceptibleDeathsAmount = static_cast<int>(deathRate * susceptiblePopulation);
-	infectedDeathsAmount = static_cast<int>(deathRate * infectedPopulation);
+	lastRate = getRate();
+	susceptibleDeathsAmount = static_cast<int>(lastRate * susceptiblePopulation);
+	infectedDeathsAmount = static_cast<int>(lastRate * infectedPopulation);
 
 	susceptiblePopulation = susceptiblePopulation - susceptibleDeathsAmount;
 	infectedPopulation = infectedPopulation - infectedDeathsAmount;
 
-	Tuple<Real> deathsValue{Real(susceptiblePopulation), Real(infectedPopulation)};
-	sendOutput(msg.time(), susceptibleDeaths, susceptibleDeathsAmount);
-	sendOutput(msg.time(), infectedDeaths, infectedDeathsAmount);
-	sendOutput(msg.time(), deathsApplied, deathsValue);
+	sendOutput(msg.time(), setValues, asTuple(susceptibleDeathsAmount, infectedDeathsAmount));
+	sendOutput(msg.time(), applied, asTuple(susceptiblePopulation, infectedPopulation));
 
 	return *this;
 }
 
 
-double DogDeaths::getDeathRate(){
-	std::normal_distribution<double> deathRateDistribution(meanDeathRate, standardDeviation);
-	return abs(deathRateDistribution(randomGenerator));
+double DogDeaths::getRate(){
+	std::normal_distribution<double> rateDistribution(meanRate, standardDeviation);
+	return abs(rateDistribution(randomGenerator));
 }

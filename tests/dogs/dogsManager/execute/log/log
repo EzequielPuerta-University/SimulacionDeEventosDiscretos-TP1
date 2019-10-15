@@ -1,0 +1,11 @@
+[logfiles]
+ParallelRoot : log/log00 
+top : log/log09 
+manager : log/log01 
+population : log/log02 
+births : log/log03 
+deaths : log/log04 
+migrations : log/log05 
+mockgenerator : log/log06 
+mockgenerator2 : log/log07 
+delay : log/log08 

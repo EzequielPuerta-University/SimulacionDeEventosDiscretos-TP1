@@ -1,0 +1,16 @@
+00:00:00:000:0 currentpopulation [15000, 135000]
+00:00:05:000:0 currentinfections     20.00000
+00:00:05:000:0 currentmigrations [0, 1, 67, 74]
+00:00:05:000:0 currentbirths [131, 13]
+00:00:05:000:0 currentdeaths [13, 118]
+00:00:10:000:0 currentpopulation [15097, 134908]
+00:00:15:000:0 currentinfections     20.00000
+00:00:15:000:0 currentmigrations [1, 2, 86, 71]
+00:00:15:000:0 currentbirths [148, 9]
+00:00:15:000:0 currentdeaths [16, 148]
+00:00:20:000:0 currentpopulation [15208, 134804]
+00:00:25:000:0 currentinfections     20.00000
+00:00:25:000:0 currentmigrations [0, 0, 51, 29]
+00:00:25:000:0 currentbirths [130, 13]
+00:00:25:000:0 currentdeaths [14, 124]
+00:00:30:000:0 currentpopulation [15304, 134735]

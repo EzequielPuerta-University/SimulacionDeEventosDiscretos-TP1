@@ -6,14 +6,10 @@
 #include "atomic.h"
 #include "VTime.h"
 
-
-#define ATOMIC_MODEL_NAME "DogMigrations"
-
-
 class DogMigrations : public Atomic {
   public:
-    DogMigrations(const string &name = ATOMIC_MODEL_NAME );
-    virtual string className() const {  return ATOMIC_MODEL_NAME ;}
+    DogMigrations(const string &name = "DogMigrations" );
+    virtual string className() const {  return "DogMigrations" ;}
 
   protected:
     Model &initFunction();
@@ -23,12 +19,9 @@ class DogMigrations : public Atomic {
     double getRate(double, double);
 
   private:
-    const Port &applyMigrations;
-    Port &susceptibleMigrations;
-    Port &infectedMigrations;
-    Port &migrationsApplied;
-
-    VTime frequency_time;
+    const Port &execute;
+    Port &setValues;
+    Port &applied;
 
     double susceptibleImmigrationRate;
     double susceptibleImmigrationDeviation;
@@ -39,10 +32,10 @@ class DogMigrations : public Atomic {
   	double infectedEmmigrationRate;
   	double infectedEmmigrationDeviation;
 
-    double currentSusceptibleImmigrationRate;
-  	double currentSusceptibleEmmigrationRate;
-  	double currentInfectedImmigrationRate;
-  	double currentInfectedEmmigrationRate;
+    double lastSusceptibleImmigrationRate;
+  	double lastSusceptibleEmmigrationRate;
+  	double lastInfectedImmigrationRate;
+  	double lastInfectedEmmigrationRate;
     double susceptibleImmigrationsAmount;
   	double susceptibleEmmigrationsAmount;
   	double infectedImmigrationsAmount;

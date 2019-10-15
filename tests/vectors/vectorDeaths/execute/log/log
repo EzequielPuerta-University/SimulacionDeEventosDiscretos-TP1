@@ -1,0 +1,5 @@
+[logfiles]
+ParallelRoot : log/log00 
+top : log/log03 
+deaths : log/log01 
+mockmanager : log/log02 

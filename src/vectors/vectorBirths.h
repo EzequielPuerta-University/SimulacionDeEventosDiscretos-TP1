@@ -6,36 +6,31 @@
 #include "atomic.h"
 #include "VTime.h"
 
-
-#define ATOMIC_MODEL_NAME "VectorBirths"
-
-
 class VectorBirths : public Atomic {
   public:
-    VectorBirths(const string &name = ATOMIC_MODEL_NAME );
-    virtual string className() const {  return ATOMIC_MODEL_NAME ;}
+    VectorBirths(const string &name = "VectorBirths" );
+    virtual string className() const {  return "VectorBirths" ;}
 
   protected:
     Model &initFunction();
     Model &externalFunction( const ExternalMessage & );
     Model &internalFunction( const InternalMessage & );
     Model &outputFunction( const CollectMessage & );
-
+    double getRate();
+    
   private:
-    const Port &applyBirths;
-    Port &susceptibleBirths;
-    Port &infectedBirths;
-    Port &birthsApplied;
+    const Port &execute;
+    Port &setValues;
+    Port &applied;
 
-    VTime frequency_time;
-
-    double meanBirthRate;
+    double meanRate;
     double standardDeviation;
-    double birthRate;
-    double susceptiblePopulation;
-    double infectedPopulation;
-    double susceptibleBirthsAmount;
-    double infectedBirthsAmount;
+    double lastRate;
+    int susceptiblePopulation;
+    int infectedPopulation;
+    int susceptibleBirthsAmount;
+    int infectedBirthsAmount;
+    double congenitalTransmissionProbability;
     std::default_random_engine randomGenerator;
 };
 

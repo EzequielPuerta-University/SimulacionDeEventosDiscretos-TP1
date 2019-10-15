@@ -7,21 +7,20 @@
 #include "tuple_value.h"
 
 #include "dogBirths.h"
+#include "utils.h"
 
 using namespace std;
 
 DogBirths::DogBirths(const string &name) :
 	Atomic(name),
-	applyBirths(addInputPort("applyBirths")),
-	susceptibleBirths(addOutputPort("susceptibleBirths")),
-	infectedBirths(addOutputPort("infectedBirths")),
-	birthsApplied(addOutputPort("birthsApplied")),
-	frequency_time(0,0,0,1){
+	execute(addInputPort("execute")),
+	setValues(addOutputPort("setValues")),
+	applied(addOutputPort("applied")){
 }
 
 
 Model &DogBirths::initFunction(){
-	meanBirthRate = 0.001002;
+	meanRate = 0.001002;
 	standardDeviation = 0.000301;
 	congenitalTransmissionProbability = 0.10;
 	passivate();
@@ -30,9 +29,9 @@ Model &DogBirths::initFunction(){
 
 
 Model &DogBirths::externalFunction(const ExternalMessage &msg){
-	if(msg.port() == applyBirths){
-		susceptiblePopulation = (Tuple<Real>::from_value(msg.value())[0]).value();
-		infectedPopulation = (Tuple<Real>::from_value(msg.value())[1]).value();
+	if(msg.port() == execute){
+		susceptiblePopulation = getValueFromTupleAt(msg,0);
+		infectedPopulation = getValueFromTupleAt(msg,1);
 	}
 	holdIn(AtomicState::active, VTime::Zero);
 	return *this;
@@ -46,26 +45,24 @@ Model &DogBirths::internalFunction(const InternalMessage &msg){
 
 
 Model &DogBirths::outputFunction(const CollectMessage &msg){
-	birthRate = getBirthRate();
-	susceptibleBirthsAmount = static_cast<int>(birthRate * susceptiblePopulation);
-	int infectedMothers = static_cast<int>(birthRate * infectedPopulation);
+	lastRate = getRate();
+	susceptibleBirthsAmount = static_cast<int>(lastRate * susceptiblePopulation);
+	int infectedMothers = static_cast<int>(lastRate * infectedPopulation);
 	std::binomial_distribution<int> binomial(infectedMothers, congenitalTransmissionProbability);
 
 	infectedBirthsAmount = binomial(randomGenerator);
-	susceptibleBirthsAmount = susceptibleBirthsAmount + (infectedMothers - infectedBirthsAmount);
+	susceptibleBirthsAmount = susceptibleBirthsAmount + infectedMothers - infectedBirthsAmount;
 	susceptiblePopulation = susceptiblePopulation + susceptibleBirthsAmount;
 	infectedPopulation = infectedPopulation + infectedBirthsAmount;
 
-	Tuple<Real> birthsValue{Real(susceptiblePopulation), Real(infectedPopulation)};
-	sendOutput(msg.time(), susceptibleBirths, susceptibleBirthsAmount);
-	sendOutput(msg.time(), infectedBirths, infectedBirthsAmount);
-	sendOutput(msg.time(), birthsApplied, birthsValue);
+	sendOutput(msg.time(), setValues, asTuple(susceptibleBirthsAmount, infectedBirthsAmount));
+	sendOutput(msg.time(), applied, asTuple(susceptiblePopulation, infectedPopulation));
 
 	return *this;
 }
 
 
-double DogBirths::getBirthRate(){
-	std::normal_distribution<double> birthRateDistribution(meanBirthRate, standardDeviation);
-	return abs(birthRateDistribution(randomGenerator));
+double DogBirths::getRate(){
+	std::normal_distribution<double> rateDistribution(meanRate, standardDeviation);
+	return abs(rateDistribution(randomGenerator));
 }

@@ -7,28 +7,26 @@
 #include "tuple_value.h"
 
 #include "dogsManager.h"
+#include "utils.h"
 
 using namespace std;
 
 DogsManager::DogsManager(const string &name) :
 	Atomic(name),
-	dogsToBeBittenRequest(addInputPort("dogsToBeBittenRequest")),
-	susceptibleResponse(addInputPort("susceptibleResponse")),
-	infectedResponse(addInputPort("infectedResponse")),
-	newInfections(addInputPort("newInfections")),
-	infectionsApplied(addInputPort("infectionsApplied")),
-	migrationsApplied(addInputPort("migrationsApplied")),
-	birthsApplied(addInputPort("birthsApplied")),
-	deathsApplied(addInputPort("deathsApplied")),
-	dogsResponse(addOutputPort("dogsResponse")),
-	susceptibleRequest(addOutputPort("susceptibleRequest")),
-	infectedRequest(addOutputPort("infectedRequest")),
+	execute(addInputPort("execute")),
+	getPopulation(addOutputPort("getPopulation")),
+	population(addInputPort("population")),
+	individualsInvolved(addOutputPort("individualsInvolved")),
+	setInfections(addInputPort("setInfections")),
 	applyNewInfections(addOutputPort("applyNewInfections")),
+	infectionsApplied(addInputPort("infectionsApplied")),
 	applyMigrations(addOutputPort("applyMigrations")),
+	migrationsApplied(addInputPort("migrationsApplied")),
 	applyBirths(addOutputPort("applyBirths")),
+	birthsApplied(addInputPort("birthsApplied")),
 	applyDeaths(addOutputPort("applyDeaths")),
-	dayFinished(addOutputPort("dayFinished")),
-	frequency_time(0,0,0,1){
+	deathsApplied(addInputPort("deathsApplied")),
+	finished(addOutputPort("finished")){
 }
 
 
@@ -40,33 +38,31 @@ Model &DogsManager::initFunction(){
 
 
 Model &DogsManager::externalFunction(const ExternalMessage &msg){
-	if(msg.port() == dogsToBeBittenRequest){
-		dogsToBeBittenAmount = (Real::from_value(msg.value())).value();
-		state = SUSCEPTIBLE_REQUEST;
-	} else if(msg.port() == susceptibleResponse){
-		susceptiblePopulation = (Real::from_value(msg.value())).value();
-		state = INFECTED_REQUEST;
-	} else if(msg.port() == infectedResponse){
-		infectedPopulation = (Real::from_value(msg.value())).value();
+	if(msg.port() == execute){
+		individualsInvolvedTotalAmount = getValueFrom(msg);
+		state = POPULATION_REQUEST;
+	} else if(msg.port() == population){
+		susceptiblePopulation = getValueFromTupleAt(msg,0);
+		infectedPopulation = getValueFromTupleAt(msg,1);
 		state = PREPARE_RESPONSE;
-	} else if(msg.port() == newInfections){
-		diseaseTransmissions = (Real::from_value(msg.value())).value();
+	} else if(msg.port() == setInfections){
+		diseaseTransmissions = getValueFrom(msg);
 		state = NEW_INFECTIONS;
 	} else if(msg.port() == infectionsApplied){
-		susceptiblePopulation = susceptiblePopulation - diseaseTransmissions;
-		infectedPopulation = infectedPopulation + diseaseTransmissions;
+		susceptiblePopulation = getValueFromTupleAt(msg,0);
+		infectedPopulation = getValueFromTupleAt(msg,1);
 		state = MIGRATIONS;
 	} else if(msg.port() == migrationsApplied){
-		susceptiblePopulation = getDoubleFromRealTupleAt(msg, 0);
-		infectedPopulation = getDoubleFromRealTupleAt(msg, 1);
+		susceptiblePopulation = getValueFromTupleAt(msg, 0);
+		infectedPopulation = getValueFromTupleAt(msg, 1);
 		state = BIRTHS;
 	} else if(msg.port() == birthsApplied){
-		susceptiblePopulation = getDoubleFromRealTupleAt(msg, 0);
-		infectedPopulation = getDoubleFromRealTupleAt(msg, 1);
+		susceptiblePopulation = getValueFromTupleAt(msg, 0);
+		infectedPopulation = getValueFromTupleAt(msg, 1);
 		state = DEATHS;
 	} else if(msg.port() == deathsApplied){
-		susceptiblePopulation = getDoubleFromRealTupleAt(msg, 0);
-		infectedPopulation = getDoubleFromRealTupleAt(msg, 1);
+		susceptiblePopulation = getValueFromTupleAt(msg, 0);
+		infectedPopulation = getValueFromTupleAt(msg, 1);
 		state = FINISH;
 	}
 
@@ -83,52 +79,43 @@ Model &DogsManager::internalFunction(const InternalMessage &msg){
 
 Model &DogsManager::outputFunction(const CollectMessage &msg){
 	switch (this->state) {
-		currentPopulation = {Real(susceptiblePopulation), Real(infectedPopulation)};
-
-		case SUSCEPTIBLE_REQUEST:
-			sendOutput(msg.time(), susceptibleRequest, Real(1));
-			break;
-		case INFECTED_REQUEST:
-			sendOutput(msg.time(), infectedRequest, Real(1));
+		case POPULATION_REQUEST:
+			sendOutput(msg.time(), getPopulation, Real(1));
 			break;
 		case PREPARE_RESPONSE:
-			prepareDogsToBeBitten(msg);
+			prepareIndividualsInvolved(msg);
 			break;
 		case NEW_INFECTIONS:
 			sendOutput(msg.time(), applyNewInfections, Real(diseaseTransmissions));
 			break;
 		case MIGRATIONS:
-			sendOutput(msg.time(), applyMigrations, currentPopulation);
+			sendOutput(msg.time(), applyMigrations, asTuple(susceptiblePopulation,infectedPopulation));
 			break;
 		case BIRTHS:
-			sendOutput(msg.time(), applyBirths, currentPopulation);
+			sendOutput(msg.time(), applyBirths, asTuple(susceptiblePopulation,infectedPopulation));
 			break;
 		case DEATHS:
-			sendOutput(msg.time(), applyDeaths, currentPopulation);
+			sendOutput(msg.time(), applyDeaths, asTuple(susceptiblePopulation,infectedPopulation));
 			break;
 		case FINISH:
-			sendOutput(msg.time(), dayFinished, currentPopulation);
+			sendOutput(msg.time(), finished, asTuple(susceptiblePopulation,infectedPopulation));
 			break;
 	}
 	return *this;
 }
 
-void DogsManager::prepareDogsToBeBitten(const CollectMessage &msg){
-	double susceptibleProbability = susceptiblePopulation / (susceptiblePopulation+infectedPopulation);
-	double infectedProbability = infectedPopulation / (susceptiblePopulation+infectedPopulation);
-	std::discrete_distribution<int> dogsDistribution({susceptibleProbability, infectedProbability});
+void DogsManager::prepareIndividualsInvolved(const CollectMessage &msg){
+	int totalPopulation = susceptiblePopulation + infectedPopulation;
+	double susceptibleProbability = susceptiblePopulation / totalPopulation;
+	double infectedProbability = infectedPopulation / totalPopulation;
+	std::discrete_distribution<int> populationDistribution({susceptibleProbability, infectedProbability});
 
 	std::map<int, int> results;
-	for(int n=0; n<dogsToBeBittenAmount; ++n) {
-			++results[dogsDistribution(randomGenerator)];
+	for(int n=0; n<individualsInvolvedTotalAmount; ++n) {
+			++results[populationDistribution(randomGenerator)];
 	}
 
-	susceptibleDogsToBeBitten = results[0];
-	infectedDogsToBeBitten = results[1];
-	Tuple<Real> dogsToBeBitten{Real(susceptibleDogsToBeBitten), Real(infectedDogsToBeBitten)};
-	sendOutput(msg.time(), dogsResponse, dogsToBeBitten);
-}
-
-double DogsManager::getDoubleFromRealTupleAt(const ExternalMessage &msg, int index){
-	return (Tuple<Real>::from_value(msg.value())[index]).value();
+	susceptibleIndividualsInvolved = results[0];
+	infectedIndividualsInvolved = results[1];
+	sendOutput(msg.time(), individualsInvolved, asTuple(susceptibleIndividualsInvolved, infectedIndividualsInvolved));
 }

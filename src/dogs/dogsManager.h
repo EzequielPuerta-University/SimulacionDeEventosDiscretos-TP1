@@ -6,58 +6,49 @@
 #include "atomic.h"
 #include "VTime.h"
 
-
-#define ATOMIC_MODEL_NAME "DogsManager"
-#define SUSCEPTIBLE_REQUEST 1
-#define INFECTED_REQUEST 2
-#define PREPARE_RESPONSE 3
-#define NEW_INFECTIONS 4
-#define MIGRATIONS 5
-#define BIRTHS 6
-#define DEATHS 7
-#define FINISH 8
+#define POPULATION_REQUEST 1
+#define PREPARE_RESPONSE 2
+#define NEW_INFECTIONS 3
+#define MIGRATIONS 4
+#define BIRTHS 5
+#define DEATHS 6
+#define FINISH 7
 
 class DogsManager : public Atomic {
   public:
-    DogsManager(const string &name = ATOMIC_MODEL_NAME );
-    virtual string className() const {  return ATOMIC_MODEL_NAME ;}
+    DogsManager(const string &name = "DogsManager" );
+    virtual string className() const {  return "DogsManager" ;}
 
   protected:
     Model &initFunction();
     Model &externalFunction( const ExternalMessage & );
     Model &internalFunction( const InternalMessage & );
     Model &outputFunction( const CollectMessage & );
-    void prepareDogsToBeBitten( const CollectMessage & );
-    double getDoubleFromRealTupleAt( const ExternalMessage &, int);
+    void prepareIndividualsInvolved( const CollectMessage & );
 
   private:
-    const Port &dogsToBeBittenRequest;
-    const Port &susceptibleResponse;
-    const Port &infectedResponse;
-    const Port &newInfections;
-    const Port &infectionsApplied;
-    const Port &migrationsApplied;
-    const Port &birthsApplied;
-    const Port &deathsApplied;
-    Port &dogsResponse;
-    Port &susceptibleRequest;
-    Port &infectedRequest;
+    const Port &execute;
+    Port &getPopulation;
+    const Port &population;
+    Port &individualsInvolved;
+    const Port &setInfections;
     Port &applyNewInfections;
+    const Port &infectionsApplied;
     Port &applyMigrations;
+    const Port &migrationsApplied;
     Port &applyBirths;
+    const Port &birthsApplied;
     Port &applyDeaths;
-    Port &dayFinished;
-
-    VTime frequency_time;
+    const Port &deathsApplied;
+    Port &finished;
 
     int state;
-    double dogsToBeBittenAmount;
-    double susceptiblePopulation;
-    double infectedPopulation;
-    double susceptibleDogsToBeBitten;
-    double infectedDogsToBeBitten;
-    double diseaseTransmissions;
-    Tuple<Real> currentPopulation;
+    int individualsInvolvedTotalAmount;
+    int susceptiblePopulation;
+    int infectedPopulation;
+    int susceptibleIndividualsInvolved;
+    int infectedIndividualsInvolved;
+    int diseaseTransmissions;
     std::default_random_engine randomGenerator;
 };
 
