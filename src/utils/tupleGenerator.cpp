@@ -23,6 +23,7 @@ TupleGenerator::TupleGenerator(const string &name) :
 	third = stod(ParallelMainSimulator::Instance().getParameter( description(), "third" ));
 	fourth = stod(ParallelMainSimulator::Instance().getParameter( description(), "fourth" ));
 	fifth = stod(ParallelMainSimulator::Instance().getParameter( description(), "fifth" ));
+	sixth = stod(ParallelMainSimulator::Instance().getParameter( description(), "sixth" ));
 }
 
 
@@ -39,6 +40,7 @@ Model &TupleGenerator::externalFunction(const ExternalMessage &msg){
 		if (size > 2){third = getValueFromTupleAt(msg,2);}
 		if (size > 3){fourth = getValueFromTupleAt(msg,3);}
 		if (size > 4){fifth = getValueFromTupleAt(msg,4);}
+		if (size > 5){sixth = getValueFromTupleAt(msg,5);}
 	}
 	holdIn(AtomicState::active, nextChange());
 	return *this;
@@ -67,6 +69,9 @@ Model &TupleGenerator::outputFunction(const CollectMessage &msg){
 			break;
 		case 5:
 			sendOutput(msg.time(), out, asTuple(first, second, third, fourth, fifth));
+			break;
+		case 6:
+			sendOutput(msg.time(), out, asTuple(first, second, third, fourth, fifth, sixth));
 			break;
 		default:
 			break;

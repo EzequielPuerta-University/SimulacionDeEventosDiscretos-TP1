@@ -1,13 +1,15 @@
 [top]
-components : population@dogsPopulation mockDeaths@TupleGenerator mockManager@Generator
+components : population@humansPopulation mockDeaths@TupleGenerator mockManager@Generator
 out : currentPopulation
 link : out@mockManager getPopulation@population
 link : queryPopulation@population currentPopulation
 link : out@mockDeaths setDeaths@population
 
 [population]
-susceptiblePopulation : 15000
-infectedPopulation : 135000
+susceptiblePopulation : 600000
+acutePopulation : 30000
+indeterminatePopulation : 120000
+chronicPopulation : 250000
 
 [mockManager]
 distribution : Constant
@@ -17,9 +19,10 @@ value : 1
 
 [mockDeaths]
 frequency_time : 00:00:10:00
-size : 2
-first : 2
-second : 8
-third : 0
-fourth : 0
+size : 4
+first : 2000
+second : 250
+third : 750
+fourth : 1000
 fifth : 0
+sixth : 0

@@ -1,0 +1,22 @@
+[logfiles]
+ParallelRoot : ../model/log/log00 
+top : ../model/log/log20 
+transmissions : ../model/log/log01 
+vectors : ../model/log/log07 
+manager : ../model/log/log02 
+vectorspopulation : ../model/log/log03 
+migrations : ../model/log/log04 
+births : ../model/log/log05 
+deaths : ../model/log/log06 
+dogs : ../model/log/log13 
+manager : ../model/log/log08 
+dogspopulation : ../model/log/log09 
+migrations : ../model/log/log10 
+births : ../model/log/log11 
+deaths : ../model/log/log12 
+humans : ../model/log/log19 
+manager : ../model/log/log14 
+humanspopulation : ../model/log/log15 
+migrations : ../model/log/log16 
+births : ../model/log/log17 
+deaths : ../model/log/log18 

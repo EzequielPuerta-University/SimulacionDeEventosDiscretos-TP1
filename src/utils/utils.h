@@ -4,6 +4,7 @@
 
 int getValueFromTupleAt( const ExternalMessage &, int);
 int getValueFrom(const ExternalMessage &msg);
+double getValueAsDoubleFrom(const ExternalMessage &msg);
 Real asTuple(int);
 Tuple<Real> asTuple(int, int);
 Tuple<Real> asTuple(int, int, int);

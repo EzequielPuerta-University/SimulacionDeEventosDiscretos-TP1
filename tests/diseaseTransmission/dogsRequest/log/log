@@ -1,0 +1,6 @@
+[logfiles]
+ParallelRoot : log/log00 
+top : log/log04 
+transmissions : log/log01 
+vectorsresponse : log/log02 
+humansresponse : log/log03 

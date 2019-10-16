@@ -2,6 +2,8 @@
 #include "register.h"
 
 //MODELOS
+#include "diseaseTransmission.h"
+
 #include "vectorsPopulation.h"
 #include "vectorBirths.h"
 #include "vectorDeaths.h"
@@ -15,6 +17,10 @@
 #include "dogsManager.h"
 
 #include "humansPopulation.h"
+#include "humanBirths.h"
+#include "humanDeaths.h"
+#include "humanMigrations.h"
+#include "humansManager.h"
 
 //TESTS
 #include "tupleGenerator.h"
@@ -22,6 +28,8 @@
 
 void register_atomics_on(ParallelModelAdmin &admin){
 	//MODELOS
+	admin.registerAtomic(NewAtomicFunction<DiseaseTransmission>(), "DiseaseTransmission");
+
 	admin.registerAtomic(NewAtomicFunction<VectorsPopulation>(), "VectorsPopulation");
 	admin.registerAtomic(NewAtomicFunction<VectorBirths>(), "VectorBirths");
 	admin.registerAtomic(NewAtomicFunction<VectorDeaths>(), "VectorDeaths");
@@ -35,6 +43,10 @@ void register_atomics_on(ParallelModelAdmin &admin){
 	admin.registerAtomic(NewAtomicFunction<DogsManager>(), "DogsManager");
 
 	admin.registerAtomic(NewAtomicFunction<HumansPopulation>(), "HumansPopulation");
+	admin.registerAtomic(NewAtomicFunction<HumanBirths>(), "HumanBirths");
+	admin.registerAtomic(NewAtomicFunction<HumanDeaths>(), "HumanDeaths");
+	admin.registerAtomic(NewAtomicFunction<HumanMigrations>(), "HumanMigrations");
+	admin.registerAtomic(NewAtomicFunction<HumansManager>(), "HumansManager");
 
 	//TESTS
 	admin.registerAtomic(NewAtomicFunction<TupleGenerator>(), "TupleGenerator");

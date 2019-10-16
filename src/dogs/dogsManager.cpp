@@ -65,7 +65,6 @@ Model &DogsManager::externalFunction(const ExternalMessage &msg){
 		infectedPopulation = getValueFromTupleAt(msg, 1);
 		state = FINISH;
 	}
-
 	holdIn(AtomicState::active, VTime::Zero);
 	return *this;
 }
@@ -105,10 +104,7 @@ Model &DogsManager::outputFunction(const CollectMessage &msg){
 }
 
 void DogsManager::prepareIndividualsInvolved(const CollectMessage &msg){
-	int totalPopulation = susceptiblePopulation + infectedPopulation;
-	double susceptibleProbability = susceptiblePopulation / totalPopulation;
-	double infectedProbability = infectedPopulation / totalPopulation;
-	std::discrete_distribution<int> populationDistribution({susceptibleProbability, infectedProbability});
+	std::discrete_distribution<int> populationDistribution({susceptiblePopulation, infectedPopulation});
 
 	std::map<int, int> results;
 	for(int n=0; n<individualsInvolvedTotalAmount; ++n) {

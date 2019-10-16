@@ -1,98 +1,97 @@
 [top]
-components : transmissions@diseaseTransmission Vectors Dogs Humans semaphore@semaphoreForManagers
-out : susceptibleVectors infectedVectors susceptibleDogs infectedDogs
+components : transmissions@diseaseTransmission Vectors Dogs Humans
+out : vectorsPopulation dogsPopulation humansPopulation
 
-link : dayFinished@Vectors vectorsPopulationComplete@semaphore
-link : dayFinished@Dogs dogsPopulationComplete@semaphore
-link : dayFinished@Humans humansPopulationComplete@semaphore
-link : newDay@semaphore newDay@transmissions
+link : dayFinished@Vectors vectorsPopulation
+link : dayFinished@Dogs dogsPopulation
+link : dayFinished@Humans humansPopulation
 
-link : dogsRequest@transmissions dogsRequest@Dogs
-link : vectorRequest@transmissions vectorsRequest@Vectors
-link : humansRequest@transmissions humansRequest@Humans
-link : dogsResponse@Dogs dogsResponse@transmissions
-link : vectorsResponse@Vectors vectorResponse@transmissions
-link : humansResponse@Humans humansResponse@transmissions
+link : dogsRequest@transmissions request@Dogs
+link : vectorRequest@transmissions request@Vectors
+link : humansRequest@transmissions request@Humans
+link : response@Dogs dogsResponse@transmissions
+link : response@Vectors vectorResponse@transmissions
+link : response@Humans humansResponse@transmissions
 link : transmitInfectedDogs@transmissions infections@Dogs
 link : transmitInfectedVectors@transmissions infections@Vectors
 link : transmitInfectedHumans@transmissions infections@Humans
 
 [Dogs]
-components : manager@dogsManager susceptibles@susceptibleDogs infected@infectedDogs migrations@dogMigrations births@dogBirths deaths@dogDeaths
-in : initialSusceptiblePopulation initialInfectedPopulation dogsRequest infections
-out : currentPopulation dogsResponse dayFinished
-link : dogsRequest dogsToBeBittenRequest@manager
-link : susceptibleRequest@manager populationRequest@susceptibles
-link : currentPopulation@susceptibles susceptibleResponse@manager
-link : infectedRequest@manager populationRequest@infected
-link : currentPopulation@infected infectedResponse@manager
-link : dogsResponse@manager dogsResponse
-link : infections newInfections@manager
-link : applyNewInfections@manager infected@susceptibles
-link : infectionsApplied@susceptibles infected@infected
-link : infectionsApplied@infected infectionsApplied@manager
-link : applyMigrations@manager applyMigrations@migrations
-link : susceptibleMigrations@migrations migrations@susceptibles
-link : infectedMigrations@migrations migrations@infected
-link : migrationsApplied@migrations migrationsApplied@manager
-link : applyBirths@manager applyBirths@births
-link : susceptibleBirths@births births@susceptibles
-link : infectedBirths@births births@infected
-link : birthsApplied@births birthsApplied@manager
-link : applyDeaths@manager applyDeaths@deaths
-link : susceptibleDeaths@deaths deaths@susceptibles
-link : infectedDeaths@deaths deaths@infected
-link : deathsApplied@deaths deathsApplied@manager
-link : dayFinished@manager dayFinished
+components : manager@dogsManager dogsPopulation@dogsPopulation migrations@dogMigrations births@dogBirths deaths@dogDeaths
+in : initialSusceptiblePopulation initialInfectedPopulation request infections
+out : currentPopulation response dayFinished
+link : request execute@manager
+link : getPopulation@manager getPopulation@dogsPopulation
+link : queryPopulation@dogsPopulation population@manager
+link : individualsInvolved@manager response
+link : infections setInfections@manager
+link : applyNewInfections@manager setInfections@dogsPopulation
+link : infectionsApplied@dogsPopulation infectionsApplied@manager
+link : applyMigrations@manager execute@migrations
+link : setValues@migrations setMigrations@dogsPopulation
+link : applied@migrations migrationsApplied@manager
+link : applyBirths@manager execute@births
+link : setValues@births setBirths@dogsPopulation
+link : applied@births birthsApplied@manager
+link : applyDeaths@manager execute@deaths
+link : setValues@deaths setDeaths@dogsPopulation
+link : applied@deaths deathsApplied@manager
+link : finished@manager dayFinished
 
-[susceptibles]
-population : 15000
-
-[infected]
-population : 135000
+[dogsPopulation]
+susceptiblePopulation : 12000
+infectedPopulation : 18000
 
 [Vectors]
-components : manager@vectorsManager susceptibles@susceptibleVectors infected@infectedVectors migrations@vectorMigrations births@vectorBirths deaths@vectorDeaths
-in : initialSusceptiblePopulation initialInfectedPopulation vectorsRequest infections
-out : currentPopulation vectorsResponse dayFinished
-link : vectorsRequest vectorRequestPercentage@manager
-link : susceptibleRequest@manager populationRequest@susceptibles
-link : currentPopulation@susceptibles susceptibleResponse@manager
-link : infectedRequest@manager populationRequest@infected
-link : currentPopulation@infected infectedResponse@manager
-link : vectorResponse@manager vectorsResponse
-link : infections newInfections@manager
-link : applyNewInfections@manager infected@susceptibles
-link : infectionsApplied@susceptibles infected@infected
-link : infectionsApplied@infected infectionsApplied@manager
-link : applyMigrations@manager applyMigrations@migrations
-link : susceptibleMigrations@migrations migrations@susceptibles
-link : infectedMigrations@migrations migrations@infected
-link : migrationsApplied@migrations migrationsApplied@manager
-link : applyBirths@manager applyBirths@births
-link : susceptibleBirths@births births@susceptibles
-link : infectedBirths@births births@infected
-link : birthsApplied@births birthsApplied@manager
-link : applyDeaths@manager applyDeaths@deaths
-link : susceptibleDeaths@deaths deaths@susceptibles
-link : infectedDeaths@deaths deaths@infected
-link : deathsApplied@deaths deathsApplied@manager
-link : dayFinished@manager dayFinished
+components : manager@vectorsManager vectorsPopulation@vectorsPopulation migrations@vectorMigrations births@vectorBirths deaths@vectorDeaths
+in : initialSusceptiblePopulation initialInfectedPopulation request infections
+out : currentPopulation response dayFinished
+link : request execute@manager
+link : getPopulation@manager getPopulation@vectorsPopulation
+link : queryPopulation@vectorsPopulation population@manager
+link : individualsInvolved@manager response
+link : infections setInfections@manager
+link : applyNewInfections@manager setInfections@vectorsPopulation
+link : infectionsApplied@vectorsPopulation infectionsApplied@manager
+link : applyMigrations@manager execute@migrations
+link : setValues@migrations setMigrations@vectorsPopulation
+link : applied@migrations migrationsApplied@manager
+link : applyBirths@manager execute@births
+link : setValues@births setBirths@vectorsPopulation
+link : applied@births birthsApplied@manager
+link : applyDeaths@manager execute@deaths
+link : setValues@deaths setDeaths@vectorsPopulation
+link : applied@deaths deathsApplied@manager
+link : finished@manager dayFinished
 
-[susceptibles]
-population : 15000
-
-[infected]
-population : 135000
+[vectorsPopulation]
+susceptiblePopulation : 70000
+infectedPopulation : 30000
 
 [Humans]
-components : manager@mockManager
-in : initialSusceptiblePopulation initialInfectedPopulation humansRequest infections
-out : currentPopulation humansResponse dayFinished
-link : humansRequest humansRequest@manager
+components : manager@humansManager humansPopulation@humansPopulation migrations@humanMigrations births@humanBirths deaths@humanDeaths
+in : initialSusceptiblePopulation initialInfectedPopulation request infections
+out : currentPopulation response dayFinished
+link : request execute@manager
+link : getPopulation@manager getPopulation@humansPopulation
+link : queryPopulation@humansPopulation population@manager
+link : individualsInvolved@manager response
+link : infections setInfections@manager
+link : applyNewInfections@manager setInfections@humansPopulation
+link : infectionsApplied@humansPopulation infectionsApplied@manager
+link : applyMigrations@manager execute@migrations
+link : setValues@migrations setMigrations@humansPopulation
+link : applied@migrations migrationsApplied@manager
+link : applyBirths@manager execute@births
+link : setValues@births setBirths@humansPopulation
+link : applied@births birthsApplied@manager
+link : applyDeaths@manager execute@deaths
+link : setValues@deaths setDeaths@humansPopulation
+link : applied@deaths deathsApplied@manager
+link : finished@manager dayFinished
 
-[mockmanager]
-distribution : Constant
-initial : 0
-increment : 0
-value : 0
+[humansPopulation]
+susceptiblePopulation : 6000
+acutePopulation : 50
+indeterminatePopulation : 1830
+chronicPopulation : 1220

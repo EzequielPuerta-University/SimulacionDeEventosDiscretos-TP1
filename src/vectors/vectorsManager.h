@@ -43,7 +43,7 @@ class VectorsManager : public Atomic {
     Port &finished;
 
     int state;
-    int vectorPercentage;
+    double vectorPercentage;
     int susceptiblePopulation;
     int infectedPopulation;
     int susceptibleIndividualsInvolved;

@@ -39,11 +39,14 @@ Model &VectorsManager::initFunction(){
 
 Model &VectorsManager::externalFunction(const ExternalMessage &msg){
 	if(msg.port() == execute){
-		vectorPercentage = getValueFrom(msg);
+		vectorPercentage = getValueAsDoubleFrom(msg);
+		//std::cout << "vectorPercentage: " << vectorPercentage << '\n';
 		state = POPULATION_REQUEST;
 	} else if(msg.port() == population){
 		susceptiblePopulation = getValueFromTupleAt(msg,0);
 		infectedPopulation = getValueFromTupleAt(msg,1);
+		//std::cout << "susceptiblePopulation: " << susceptiblePopulation << '\n';
+		//std::cout << "infectedPopulation: " << infectedPopulation << '\n';
 		state = PREPARE_RESPONSE;
 	} else if(msg.port() == setInfections){
 		diseaseTransmissions = getValueFrom(msg);
@@ -65,7 +68,6 @@ Model &VectorsManager::externalFunction(const ExternalMessage &msg){
 		infectedPopulation = getValueFromTupleAt(msg, 1);
 		state = FINISH;
 	}
-
 	holdIn(AtomicState::active, VTime::Zero);
 	return *this;
 }
@@ -105,13 +107,10 @@ Model &VectorsManager::outputFunction(const CollectMessage &msg){
 }
 
 void VectorsManager::prepareIndividualsInvolved(const CollectMessage &msg){
-	int totalPopulation = susceptiblePopulation + infectedPopulation;
-	double susceptibleProbability = susceptiblePopulation / totalPopulation;
-	double infectedProbability = infectedPopulation / totalPopulation;
-	std::discrete_distribution<int> populationDistribution({susceptibleProbability, infectedProbability});
+	std::discrete_distribution<int> populationDistribution({susceptiblePopulation, infectedPopulation});
 
-	double amountOfVectors = round(totalPopulation * vectorPercentage);
-
+	double amountOfVectors = round((susceptiblePopulation + infectedPopulation) * vectorPercentage);
+	//std::cout << "amountOfVectors: " << amountOfVectors << '\n';
 	std::map<int, int> results;
 	for(int n=0; n<amountOfVectors; ++n) {
 			++results[populationDistribution(randomGenerator)];
@@ -119,5 +118,7 @@ void VectorsManager::prepareIndividualsInvolved(const CollectMessage &msg){
 
 	susceptibleIndividualsInvolved = results[0];
 	infectedIndividualsInvolved = results[1];
+	//std::cout << "susceptibleIndividualsInvolved: " << susceptibleIndividualsInvolved << '\n';
+	//std::cout << "infectedIndividualsInvolved: " << infectedIndividualsInvolved << '\n';
 	sendOutput(msg.time(), individualsInvolved, asTuple(susceptibleIndividualsInvolved, infectedIndividualsInvolved));
 }

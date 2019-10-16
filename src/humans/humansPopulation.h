@@ -41,8 +41,6 @@ class HumansPopulation : public Atomic {
 
     int susceptibleImmigrants;
     int susceptibleEmmigrants;
-    int acuteImmigrants;
-    int acuteEmmigrants;
     int indeterminateImmigrants;
     int indeterminateEmmigrants;
     int chronicImmigrants;

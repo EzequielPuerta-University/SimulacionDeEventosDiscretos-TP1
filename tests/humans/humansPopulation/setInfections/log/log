@@ -1,5 +1,7 @@
 [logfiles]
 ParallelRoot : log/log00 
-top : log/log03 
+top : log/log05 
 population : log/log01 
-mockinfections : log/log02 
+mockmanager : log/log02 
+delay : log/log03 
+mockinfections : log/log04 

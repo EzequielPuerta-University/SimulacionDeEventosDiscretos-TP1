@@ -30,6 +30,7 @@ class TupleGenerator : public Atomic {
     int third;
     int fourth;
     int fifth;
+    int sixth;
 };
 
 #endif

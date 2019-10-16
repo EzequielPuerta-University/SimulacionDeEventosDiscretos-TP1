@@ -29,9 +29,9 @@ HumansPopulation::HumansPopulation(const string &name) :
 
 Model &HumansPopulation::initFunction(){
 	acuteCureRate = 0.000667;
-	acuteCureDeviation = 0.000200;
+	acuteCureDeviation = 0.008000;
 	indeterminateCureRate = 0.000018;
-	indeterminateCureDeviation = 0.000007;
+	indeterminateCureDeviation = 0.000200;
 
 	// acuteBloodTransmissionRate = 0.000002;
 	// acuteBloodTransmissionDeviation = 0.000001;
@@ -63,27 +63,22 @@ Model &HumansPopulation::externalFunction(const ExternalMessage &msg){
 	} else if(msg.port() == setMigrations){
 			susceptibleImmigrants = getValueFromTupleAt(msg,0);
 			susceptibleEmmigrants = getValueFromTupleAt(msg,1);
-			acuteImmigrants = getValueFromTupleAt(msg,2);
-			acuteEmmigrants = getValueFromTupleAt(msg,3);
-			indeterminateImmigrants = getValueFromTupleAt(msg,4);
-			indeterminateEmmigrants = getValueFromTupleAt(msg,5);
-			chronicImmigrants = getValueFromTupleAt(msg,6);
-			chronicEmmigrants = getValueFromTupleAt(msg,7);
+			indeterminateImmigrants = getValueFromTupleAt(msg,2);
+			indeterminateEmmigrants = getValueFromTupleAt(msg,3);
+			chronicImmigrants = getValueFromTupleAt(msg,4);
+			chronicEmmigrants = getValueFromTupleAt(msg,5);
 
 			susceptiblePopulation = susceptiblePopulation - susceptibleEmmigrants + susceptibleImmigrants;
-			acutePopulation = acutePopulation - acuteEmmigrants + acuteImmigrants;
 			indeterminatePopulation = indeterminatePopulation - indeterminateEmmigrants + indeterminateImmigrants;
 			chronicPopulation = chronicPopulation - chronicEmmigrants + chronicImmigrants;
 	} else if(msg.port() == setBirths){
 			susceptiblePopulation = susceptiblePopulation + getValueFromTupleAt(msg,0);
 			acutePopulation = acutePopulation + getValueFromTupleAt(msg,1);
-			indeterminatePopulation = indeterminatePopulation + getValueFromTupleAt(msg,3);
-			chronicPopulation = chronicPopulation + getValueFromTupleAt(msg,4);
 	} else if (msg.port() == setDeaths){
-			susceptiblePopulation = susceptiblePopulation + getValueFromTupleAt(msg,0);
-			acutePopulation = acutePopulation + getValueFromTupleAt(msg,1);
-			indeterminatePopulation = indeterminatePopulation + getValueFromTupleAt(msg,3);
-			chronicPopulation = chronicPopulation + getValueFromTupleAt(msg,4);
+			susceptiblePopulation = susceptiblePopulation - getValueFromTupleAt(msg,0);
+			acutePopulation = acutePopulation - getValueFromTupleAt(msg,1);
+			indeterminatePopulation = indeterminatePopulation - getValueFromTupleAt(msg,2);
+			chronicPopulation = chronicPopulation - getValueFromTupleAt(msg,3);
 	}
 	holdIn(AtomicState::active, VTime::Zero);
 	return *this;
@@ -117,16 +112,16 @@ double HumansPopulation::getRate(double mean, double deviation){
 }
 
 void HumansPopulation::applyCures(){
-	int acuteRecovered = getRate(acuteCureRate, acuteCureDeviation) * acutePopulation;
-	int indeterminateRecovered = getRate(indeterminateCureRate, indeterminateCureDeviation) * indeterminatePopulation;
+	int acuteRecovered = static_cast<int>(getRate(acuteCureRate, acuteCureDeviation) * acutePopulation);
+	int indeterminateRecovered = static_cast<int>(getRate(indeterminateCureRate, indeterminateCureDeviation) * indeterminatePopulation);
 	acutePopulation = acutePopulation - acuteRecovered;
 	indeterminatePopulation = indeterminatePopulation - indeterminateRecovered;
 	susceptiblePopulation = susceptiblePopulation + acuteRecovered + indeterminateRecovered;
 }
 
 void HumansPopulation::applyDiseaseProgression(){
-	int acuteAggravated = getRate(acuteProgressionRate, acuteProgressionDeviation) * acutePopulation;
-	int indeterminateAggravated = getRate(indeterminateProgressionRate, indeterminateProgressionDeviation) * indeterminatePopulation;
+	int acuteAggravated = static_cast<int>(getRate(acuteProgressionRate, acuteProgressionDeviation) * acutePopulation);
+	int indeterminateAggravated = static_cast<int>(getRate(indeterminateProgressionRate, indeterminateProgressionDeviation) * indeterminatePopulation);
 	acutePopulation = acutePopulation - acuteAggravated;
 	indeterminatePopulation = indeterminatePopulation - indeterminateAggravated + acuteAggravated;
 	chronicPopulation = chronicPopulation + indeterminateAggravated;

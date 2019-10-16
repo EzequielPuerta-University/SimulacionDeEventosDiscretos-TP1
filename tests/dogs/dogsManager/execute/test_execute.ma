@@ -38,6 +38,7 @@ second : 0
 third : 0
 fourth : 0
 fifth : 0
+sixth : 0
 
 [delay]
 delay_time : 00:00:05:00
@@ -50,3 +51,4 @@ second : 0
 third : 0
 fourth : 0
 fifth : 0
+sixth : 0
